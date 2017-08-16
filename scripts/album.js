@@ -28,6 +28,33 @@ var albumMarconi = {
     ]
 };
 
+var albumWayne = {
+    title: 'Tha Block Is Hot',
+    artist: 'Lil Wayne',
+    label: 'Cas$h Money',
+    year: '1999',
+    albumArtUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1a/Thablockishot.jpg/220px-Thablockishot.jpg',
+    songs: [
+        { title: 'Intro ft. Big Tymers', duration: '1:47' },
+        { title: 'Tha Block Is Hot', duration: '4:12' },
+        { title: 'Loud Pipes ft. Big Tymers & Juvenile & B.G.', duration: '5:14'},
+        { title: 'Watcha Wanna Do', duration: '3:50' },
+        { title: 'Kisha performed by Hot Boys', duration: '4:17'},
+        { title: 'High Beamin ft. B.G.', duration: '4:09' },
+        { title: 'Lights Off', duration: '4:07' },
+        { title: 'Fuck Tha World', duration: '4:46' },
+        { title: 'Remember Me ft. B.G.', duration: '3:54' },
+        { title: 'Respect Us ft. Juvenile', duration: '5:01' },
+        { title: 'Drop It Like It\'s Hot ft. B.G. & Mannie Fresh', duration: '5:23' },
+        { title: 'Young Playa ft. Big Tymers', duration: '3:47' },
+        { title: 'Enemy Turf ft. Juvenile', duration: '4:19' },
+        { title: 'Not Like Me ft. Big Tymers', duration: '4:03' },
+        { title: 'Come On ft. B.G.', duration: '3:35' },
+        { title: 'Up To Me ft. Turk', duration: '4:31' },
+        { title: 'You Want War ft. Turk', duration: '3:25' },
+    ]
+};
+
 var createSongRow = function(songNumber, songName, songLength) {
   var template =
   '<tr class="album-view-song-item">'
@@ -60,5 +87,18 @@ var setCurrentAlbum = function(album) {
 };
 
 window.onload = function() {
-  setCurrentAlbum(albumMarconi);
+  setCurrentAlbum(albumPicasso);
 }
+
+var albumSwitch = document.getElementsByClassName('album-cover-art')[0];
+var albumList = [albumPicasso, albumMarconi, albumWayne];
+var currentAlbumCount = 0;
+
+albumSwitch.addEventListener('click', function() {
+  currentAlbumCount++;
+  if (currentAlbumCount>2) {
+    currentAlbumCount = 0;
+  }
+  setCurrentAlbum(albumList[currentAlbumCount]);
+
+})
