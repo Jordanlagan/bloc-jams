@@ -39,11 +39,19 @@ var createSongRow = function(songNumber, songName, songLength) {
   		$(this).html(pauseButtonTemplate);
       setSong(songNumber);
       currentSoundFile.play(); //song is playing
+      updateSeekBarWhileSongPlays();
       updatePlayerBarSong();
+
+      var $volumeFill = $('.volume .fill');
+      var $volumeThumb = $('.volume .thumb');
+      $volumeFill.width(currentVolume + '%');
+      $volumeThumb.css({left: currentVolume + '%'});
+
   	} else if (currentlyPlayingSongNumber === songNumber) {
   		//REPLACE WITH A CONDITIONAL STATEMENT THAT CHECKS IF currentSoundFile IS PAUSED
       if (currentSoundFile.isPaused()) {
         currentSoundFile.play();
+        updateSeekBarWhileSongPlays();
         $(this).html(pauseButtonTemplate);
         $('.main-controls .play-pause').html(playerBarPauseButton);
       } else {
@@ -79,6 +87,57 @@ var setCurrentAlbum = function(album) {
   }
 };
 
+var updateSeekBarWhileSongPlays = function() {
+  if (currentSoundFile) {
+    currentSoundFile.bind('timeupdate', function(event) {
+      var seekBarFillRatio = this.getTime() / this.getDuration();
+      var $seekBar = $('.seek-control .seek-bar');
+
+      updateSeekPercentage($seekBar, seekBarFillRatio);
+    });
+  }
+};
+
+var updateSeekPercentage = function($seekBar, seekBarFillRatio) {
+  var offsetXPercent = seekBarFillRatio * 100;
+  offsetXPercent = Math.max(0, offsetXPercent);
+  offsetXPercent = Math.min(100, offsetXPercent);
+
+  var percentageString = offsetXPercent + '%';
+  $seekBar.find('.fill').width(percentageString);
+  $seekBar.find('.thumb').css({left: percentageString});
+};
+
+var setupSeekBars = function() {
+  var $seekBars = $(".player-bar .seek-bar");
+
+  $seekBars.click(function(event) {
+    var offsetX = event.pageX - $(this).offset().left;
+    var barWidth = $(this).width();
+    var seekBarFillRatio = offsetX / barWidth;
+    updateSeekPercentage($(this), seekBarFillRatio);
+    if ($(this).parent().attr("class")=="seek-control") {seek(seekBarFillRatio*currentSoundFile.getDuration())} else {setVolume(seekBarFillRatio*100)}
+  });
+
+  $seekBars.find('.thumb').mousedown(function(event) {
+    var $seekBar = $(this).parent();
+
+    $(document).bind('mousemove.thumb', function(event) {
+      var offsetX = event.pageX - $seekBar.offset().left;
+      var barWidth = $seekBar.width();
+      var seekBarFillRatio = offsetX / barWidth;
+
+      updateSeekPercentage($seekBar, seekBarFillRatio);
+      if ($(this).parent().attr("class")=="seek-control") {seek(seekBarFillRatio*currentSoundFile.getDuration())} else {setVolume(seekBarFillRatio*100)}
+    });
+
+    $(document).bind('mouseup.thumb', function() {
+      $(document).unbind('mousemove.thumb');
+      $(document).unbind('mouseup.thumb');
+    });
+  });
+};
+
 var setSong = function(songNumber) {
   if (currentSoundFile) {
     currentSoundFile.stop();
@@ -89,6 +148,20 @@ var setSong = function(songNumber) {
     formats: [ 'mp3' ],
     preload: true
   });
+
+  setVolume(currentVolume);
+};
+
+var seek = function(time) {
+  if (currentSoundFile) {
+    currentSoundFile.setTime(time);
+  }
+};
+
+var setVolume = function(volume) {
+  if (currentSoundFile) {
+    currentSoundFile.setVolume(volume);
+  }
 };
 
 var trackIndex = function(album, song) {
@@ -115,6 +188,7 @@ var nextSong = function() {
 
   setSong(currentSongIndex+1);
   currentSoundFile.play();
+  updateSeekBarWhileSongPlays();
 
   updatePlayerBarSong();
 
@@ -137,6 +211,7 @@ var previousSong = function() {
 
   setSong(currentSongIndex+1);
   currentSoundFile.play();
+  updateSeekBarWhileSongPlays();
 
   updatePlayerBarSong();
 
@@ -162,12 +237,14 @@ var currentAlbum = null;
 var currentlyPlayingSongNumber = null;
 var currentSongFromAlbum = null;
 var currentSoundFile = null;
+var currentVolume = 80;
 
 var $previousButton = $('.main-controls .previous');
 var $nextButton = $('.main-controls .next');
 
 $(document).ready(function() {
   setCurrentAlbum(albumPicasso);
+  setupSeekBars();
   $previousButton.click(previousSong);
   $nextButton.click(nextSong);
 });
